@@ -142,6 +142,22 @@ secure-task-system/
 3. **Set up environment variables**
    ```bash
    # Create .env file with your configuration (see Environment Configuration section)
+   ## Database Configuration
+   ## DATABASE_TYPE=sqlite
+   ##DATABASE_PATH=./database.sqlite
+
+   ## JWT Configuration
+   ##JWT_SECRET=your-super-secret-jwt-key-here
+   ##JWT_EXPIRES_IN=24h
+
+   ## Application Configuration
+   ##PORT=3000
+   ##NODE_ENV=development
+
+   ## CORS Configuration
+   ##CORS_ORIGIN=http://localhost:4200
+
+
    ```
 
 4. **Start the development servers**
