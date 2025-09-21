@@ -154,7 +154,7 @@ secure-task-system/
 
    **Frontend (Dashboard):**
    ```bash
-   npx nx serve dashboard
+   npx nx serve secure-task-system
    ```
    The dashboard will be available at `http://localhost:4200`
 
