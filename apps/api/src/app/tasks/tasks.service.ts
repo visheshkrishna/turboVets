@@ -45,6 +45,7 @@ export class TasksService {
     } = queryDto;
     
     console.log('TasksService: Finding tasks with params:', { queryDto, userRole, accessibleOrgIds, userId });
+    console.log('TasksService: Date filters:', { dateFrom, dateTo });
     
     const queryBuilder = this.tasksRepository
       .createQueryBuilder('task')
@@ -55,7 +56,7 @@ export class TasksService {
     // Apply filters
     if (search) {
       queryBuilder.andWhere(
-        '(task.title ILIKE :search OR task.description ILIKE :search)',
+        '(task.title LIKE :search OR task.description LIKE :search)',
         { search: `%${search}%` }
       );
     }
@@ -82,11 +83,17 @@ export class TasksService {
 
     // Date range filters
     if (dateFrom) {
-      queryBuilder.andWhere('task.createdAt >= :dateFrom', { dateFrom });
+      // Convert date string to start of day
+      const startDate = new Date(dateFrom);
+      startDate.setHours(0, 0, 0, 0);
+      queryBuilder.andWhere('task.createdAt >= :dateFrom', { dateFrom: startDate });
     }
 
     if (dateTo) {
-      queryBuilder.andWhere('task.createdAt <= :dateTo', { dateTo });
+      // Convert date string to end of day
+      const endDate = new Date(dateTo);
+      endDate.setHours(23, 59, 59, 999);
+      queryBuilder.andWhere('task.createdAt <= :dateTo', { dateTo: endDate });
     }
 
     // For viewers, only show tasks assigned to them
@@ -155,8 +162,39 @@ export class TasksService {
       }
     }
 
+    console.log('TasksService: Updating task with DTO:', updateTaskDto);
+    console.log('TasksService: Current task before update:', {
+      id: task.id,
+      title: task.title,
+      assignedToId: task.assignedToId,
+      organizationId: task.organizationId
+    });
+    
     Object.assign(task, updateTaskDto);
-    return this.tasksRepository.save(task);
+    
+    // 👇 CRITICAL FIX: Handle assignedToId update properly
+    if (updateTaskDto.assignedToId !== undefined) {
+      task.assignedToId = updateTaskDto.assignedToId;
+      (task as any).assignedTo = null; // Clear stale relation so TypeORM respects the FK update
+      console.log('TasksService: Explicitly set assignedToId and cleared assignedTo relation');
+    }
+    
+    console.log('TasksService: Task after assignment:', {
+      id: task.id,
+      title: task.title,
+      assignedToId: task.assignedToId,
+      organizationId: task.organizationId
+    });
+    
+    const savedTask = await this.tasksRepository.save(task);
+    console.log('TasksService: Task saved successfully:', {
+      id: savedTask.id,
+      title: savedTask.title,
+      assignedToId: savedTask.assignedToId,
+      organizationId: savedTask.organizationId
+    });
+    
+    return savedTask;
   }
 
   async remove(id: number, userRole: UserRole, userId: number, accessibleOrgIds: number[]): Promise<void> {

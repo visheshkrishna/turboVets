@@ -12,14 +12,14 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() loginDto: LoginDto, @Req() req: ExpressRequest): Promise<AuthResponseDto> {
-    const ipAddress = req.ip || req.connection.remoteAddress;
+    const ipAddress = req.ip || req.socket?.remoteAddress || 'unknown';
     const userAgent = req.headers['user-agent'];
     return this.authService.login(loginDto, ipAddress, userAgent);
   }
 
   @Post('register')
   async register(@Body() registerDto: RegisterDto, @Req() req: ExpressRequest): Promise<AuthResponseDto> {
-    const ipAddress = req.ip || req.connection.remoteAddress;
+    const ipAddress = req.ip || req.socket?.remoteAddress || 'unknown';
     const userAgent = req.headers['user-agent'];
     return this.authService.register(registerDto, ipAddress, userAgent);
   }

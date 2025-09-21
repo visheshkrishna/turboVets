@@ -68,7 +68,6 @@ export interface TaskFilters {
           <input
             type="text"
             [(ngModel)]="filters.search"
-            (ngModelChange)="onFilterChange()"
             placeholder="Search tasks..."
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
@@ -79,7 +78,6 @@ export interface TaskFilters {
           <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
           <select
             [(ngModel)]="filters.status"
-            (ngModelChange)="onFilterChange()"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
             <option value="">All Statuses</option>
@@ -94,7 +92,6 @@ export interface TaskFilters {
           <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
           <select
             [(ngModel)]="filters.category"
-            (ngModelChange)="onFilterChange()"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
             <option value="">All Categories</option>
@@ -109,7 +106,6 @@ export interface TaskFilters {
           <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
           <select
             [(ngModel)]="filters.priority"
-            (ngModelChange)="onFilterChange()"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
             <option value="">All Priorities</option>
@@ -126,7 +122,6 @@ export interface TaskFilters {
           <label class="block text-sm font-medium text-gray-700 mb-1">Assigned To</label>
           <select
             [(ngModel)]="filters.assignedToId"
-            (ngModelChange)="onFilterChange()"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
             <option value="">All Users</option>
@@ -141,7 +136,6 @@ export interface TaskFilters {
           <label class="block text-sm font-medium text-gray-700 mb-1">Created By</label>
           <select
             [(ngModel)]="filters.createdById"
-            (ngModelChange)="onFilterChange()"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
             <option value="">All Creators</option>
@@ -156,7 +150,6 @@ export interface TaskFilters {
           <label class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
           <select
             [(ngModel)]="filters.sortBy"
-            (ngModelChange)="onFilterChange()"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
             <option value="createdAt">Created Date</option>
@@ -173,7 +166,6 @@ export interface TaskFilters {
           <label class="block text-sm font-medium text-gray-700 mb-1">Order</label>
           <select
             [(ngModel)]="filters.sortOrder"
-            (ngModelChange)="onFilterChange()"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
             <option value="desc">Newest First</option>
@@ -189,7 +181,6 @@ export interface TaskFilters {
           <input
             type="date"
             [(ngModel)]="filters.dateFrom"
-            (ngModelChange)="onFilterChange()"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
         </div>
@@ -198,7 +189,6 @@ export interface TaskFilters {
           <input
             type="date"
             [(ngModel)]="filters.dateTo"
-            (ngModelChange)="onFilterChange()"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
         </div>
@@ -281,16 +271,26 @@ export class TaskFiltersComponent implements OnInit {
   }
 
   onFilterChange() {
-    // Clean up empty values
+    // Clean up empty values and format dates
     const cleanFilters: TaskFilters = {};
     
     Object.keys(this.filters).forEach(key => {
       const value = this.filters[key as keyof TaskFilters];
       if (value !== '' && value !== undefined && value !== null) {
-        (cleanFilters as any)[key] = value;
+        // Format date fields to ISO string
+        if (key === 'dateFrom' || key === 'dateTo') {
+          if (value) {
+            // Convert date string to ISO format for backend
+            const date = new Date(value as string);
+            (cleanFilters as any)[key] = date.toISOString().split('T')[0];
+          }
+        } else {
+          (cleanFilters as any)[key] = value;
+        }
       }
     });
 
+    console.log('🔍 TaskFilters: Emitting filters:', cleanFilters);
     this.filtersChange.emit(cleanFilters);
   }
 
@@ -311,7 +311,11 @@ export class TaskFiltersComponent implements OnInit {
   }
 
   removeFilter(filterKey: string) {
-    (this.filters as any)[filterKey] = '';
+    if (filterKey === 'priority' || filterKey === 'assignedToId' || filterKey === 'createdById') {
+      (this.filters as any)[filterKey] = undefined;
+    } else {
+      (this.filters as any)[filterKey] = '';
+    }
     this.onFilterChange();
   }
 
