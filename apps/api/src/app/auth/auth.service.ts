@@ -77,40 +77,36 @@ export class AuthService {
     // Hash password
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 
-    // Check if this is the first user - make them admin
-    const userCount = await this.userRepository.count();
-    const role = userCount === 0 ? UserRole.ADMIN : UserRole.VIEWER;
+    // another way of making sure there is one owner and others are viewers
+    //const userCount = await this.userRepository.count();
+    //const role = userCount === 0 ? UserRole.ADMIN : UserRole.VIEWER;
+
+    // Assign all new users the OWNER role
+    const role = UserRole.OWNER;
     
-    // Debug logging
-    console.log(`User registration: Total users in DB: ${userCount}, Assigning role: ${role}`);
+    // User role assigned
 
     let organizationId: number | null = null;
 
-    // If this is the first user (admin), create a default organization
-    if (userCount === 0) {
+    // Look for existing organization first
+    const firstOrg = await this.organizationRepository.findOne({ 
+      where: {}, 
+      order: { id: 'ASC' } 
+    });
+    
+    if (firstOrg) {
+      organizationId = firstOrg.id;
+      // User assigned to existing organization
+    } else {
+      // If no organization exists, create a default one
+      // Creating default organization
       const defaultOrg = this.organizationRepository.create({
         name: `${registerDto.firstName} ${registerDto.lastName}'s Organization`,
-        description: 'Default organization created for the first admin user'
+        description: 'Default organization created for new owner user'
       });
       const savedOrg = await this.organizationRepository.save(defaultOrg);
       organizationId = savedOrg.id;
-      console.log(`Created default organization with ID: ${organizationId}`);
-    } else {
-      // For subsequent users, assign them to the first organization
-      const firstOrg = await this.organizationRepository.findOne({ order: { id: 'ASC' } });
-      if (firstOrg) {
-        organizationId = firstOrg.id;
-        console.log(`Assigned user to existing organization with ID: ${organizationId}`);
-      } else {
-        // If no organization exists, create a default one
-        const defaultOrg = this.organizationRepository.create({
-          name: 'Default Organization',
-          description: 'Default organization for users'
-        });
-        const savedOrg = await this.organizationRepository.save(defaultOrg);
-        organizationId = savedOrg.id;
-        console.log(`Created default organization with ID: ${organizationId}`);
-      }
+      // Default organization created
     }
 
     // Create user
@@ -179,7 +175,7 @@ export class AuthService {
     user.organizationId = savedOrg.id;
     await this.userRepository.save(user);
 
-    console.log(`Fixed user ${userId} by assigning to organization ${savedOrg.id}`);
+    // User organization fixed
     return { message: 'User organization fixed successfully' };
   }
 

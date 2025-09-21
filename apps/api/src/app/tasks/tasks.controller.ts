@@ -46,15 +46,14 @@ export class TasksController {
     @Body() createTaskDto: CreateTaskDto,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<Task> {
-    console.log('TasksController: Creating task with DTO:', createTaskDto);
-    console.log('TasksController: User info:', user);
+    // Creating task
     const task = await this.tasksService.create(
       createTaskDto,
       user.userId,
       user.role as UserRole,
       user.organizationId,
     );
-    console.log('TasksController: Task created:', task);
+    // Task created successfully
     return task;
   }
 
@@ -64,15 +63,10 @@ export class TasksController {
     @Query() queryDto: GetTasksQueryDto,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<{ tasks: Task[]; total: number }> {
-    console.log('TasksController: Getting tasks with query:', queryDto);
-    console.log('TasksController: User info:', user);
-    
     // Get accessible organization IDs (including child organizations)
     const accessibleOrgIds = await this.organizationsService.getAccessibleOrganizations(user.organizationId);
-    console.log('TasksController: Accessible org IDs:', accessibleOrgIds);
     
     const result = await this.tasksService.findAll(queryDto, user.role as UserRole, accessibleOrgIds, user.userId);
-    console.log('TasksController: Found tasks:', result);
     return result;
   }
 

@@ -78,7 +78,7 @@ export class TaskListComponent implements OnInit {
   }
 
   loadTasks() {
-    console.log('🔄 Loading tasks...');
+    // Loading tasks
     this.isLoading = true;
     this.error = null;
     
@@ -89,17 +89,13 @@ export class TaskListComponent implements OnInit {
     
     this.tasksService.getTasks(this.currentFilters).subscribe({
       next: (response: { tasks: Task[]; total: number }) => {
-        console.log('📋 Tasks loaded from API:', response);
+        // Tasks loaded successfully
         const tasks = response.tasks;
         this.todoTasks = tasks.filter((t: Task) => t.status === TaskStatus.OPEN);
         this.inProgressTasks = tasks.filter((t: Task) => t.status === TaskStatus.IN_PROGRESS);
         this.doneTasks = tasks.filter((t: Task) => t.status === TaskStatus.DONE);
         
-        console.log('📊 Task distribution:', {
-          todo: this.todoTasks.length,
-          inProgress: this.inProgressTasks.length,
-          done: this.doneTasks.length
-        });
+        // Task distribution updated
         
         this.isLoading = false;
       },
@@ -164,11 +160,11 @@ export class TaskListComponent implements OnInit {
       }
       
       // Update the task status in the backend
-      console.log('🚀 Making API call to update task status...');
+      // Making API call to update task status
       this.tasksService.updateTask(task.id, { status: newStatus }).subscribe({
         next: (updatedTask) => {
           // Success - task status updated in backend
-          console.log(`✅ Task ${task.id} moved to ${newStatus}`, updatedTask);
+          // Task status updated successfully
           // Update the local task with the server response
           Object.assign(task, updatedTask);
         },

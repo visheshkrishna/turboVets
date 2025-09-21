@@ -22,9 +22,7 @@ export class TasksService {
     task.organizationId = organizationId;
     task.status = TaskStatus.OPEN; // Set default status
 
-    console.log('TasksService: Creating task:', task);
     const savedTask = await this.tasksRepository.save(task);
-    console.log('TasksService: Task created successfully:', savedTask);
     return savedTask;
   }
 
@@ -44,8 +42,7 @@ export class TasksService {
       dateTo
     } = queryDto;
     
-    console.log('TasksService: Finding tasks with params:', { queryDto, userRole, accessibleOrgIds, userId });
-    console.log('TasksService: Date filters:', { dateFrom, dateTo });
+    // Building task query
     
     const queryBuilder = this.tasksRepository
       .createQueryBuilder('task')
@@ -114,8 +111,7 @@ export class TasksService {
 
     const [tasks, total] = await queryBuilder.getManyAndCount();
     
-    console.log('TasksService: Query executed, found tasks:', tasks.length, 'total:', total);
-    console.log('TasksService: Tasks:', tasks);
+    // Query executed successfully
 
     return { tasks, total };
   }
@@ -162,13 +158,7 @@ export class TasksService {
       }
     }
 
-    console.log('TasksService: Updating task with DTO:', updateTaskDto);
-    console.log('TasksService: Current task before update:', {
-      id: task.id,
-      title: task.title,
-      assignedToId: task.assignedToId,
-      organizationId: task.organizationId
-    });
+    // Updating task
     
     Object.assign(task, updateTaskDto);
     
@@ -176,23 +166,10 @@ export class TasksService {
     if (updateTaskDto.assignedToId !== undefined) {
       task.assignedToId = updateTaskDto.assignedToId;
       (task as any).assignedTo = null; // Clear stale relation so TypeORM respects the FK update
-      console.log('TasksService: Explicitly set assignedToId and cleared assignedTo relation');
+      // AssignedToId updated
     }
     
-    console.log('TasksService: Task after assignment:', {
-      id: task.id,
-      title: task.title,
-      assignedToId: task.assignedToId,
-      organizationId: task.organizationId
-    });
-    
     const savedTask = await this.tasksRepository.save(task);
-    console.log('TasksService: Task saved successfully:', {
-      id: savedTask.id,
-      title: savedTask.title,
-      assignedToId: savedTask.assignedToId,
-      organizationId: savedTask.organizationId
-    });
     
     return savedTask;
   }

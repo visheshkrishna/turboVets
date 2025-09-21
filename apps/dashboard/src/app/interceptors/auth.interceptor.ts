@@ -8,9 +8,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = injector.get(AuthService);
   const authToken = authService.getToken();
   
-  console.log('Auth Interceptor - Request URL:', req.url);
-  console.log('Auth Interceptor - Token found:', !!authToken);
-  console.log('Auth Interceptor - Token value:', authToken ? authToken.substring(0, 20) + '...' : 'null');
+  // Auth interceptor processing request
 
   if (authToken) {
     const authReq = req.clone({
@@ -18,10 +16,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         Authorization: `Bearer ${authToken}`
       }
     });
-    console.log('Auth Interceptor - Authorization header set:', authReq.headers.get('Authorization'));
+    // Authorization header set
     return next(authReq);
   }
 
-  console.log('Auth Interceptor - No token, proceeding without auth');
+  // No token, proceeding without auth
   return next(req);
 };

@@ -30,11 +30,10 @@ export class AuthService {
     return this.http.post<AuthResponseDto>(`${this.API_URL}/auth/login`, loginDto)
       .pipe(
         tap(response => {
-          console.log('Auth Service - Login response:', response);
-          console.log('Auth Service - Token received:', response.access_token ? response.access_token.substring(0, 20) + '...' : 'null');
+          // Login successful
           this.setToken(response.access_token);
           this.currentUserSubject.next(response.user);
-          console.log('Auth Service - User set:', response.user);
+          // User data set
         })
       );
   }
@@ -67,9 +66,7 @@ export class AuthService {
   }
 
   private setToken(token: string): void {
-    console.log('Auth Service - Setting token in localStorage:', token ? token.substring(0, 20) + '...' : 'null');
     localStorage.setItem('token', token);
-    console.log('Auth Service - Token stored, verifying:', localStorage.getItem('token') ? 'success' : 'failed');
   }
 
   public loadUserFromStorage(): void {

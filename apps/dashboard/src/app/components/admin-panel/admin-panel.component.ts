@@ -91,7 +91,7 @@ export class AdminPanelComponent implements OnInit {
   loadUsers() {
     this.adminService.getUsers().subscribe({
       next: (users) => {
-        console.log('Users loaded:', users);
+        // Users loaded successfully
         this.users = users;
       },
       error: (error) => {
@@ -169,25 +169,21 @@ export class AdminPanelComponent implements OnInit {
 
   editUser(user: User) {
     // TODO: Implement edit user functionality
-    console.log('Edit user:', user);
+    // Edit user action
   }
 
   changeUserRole(user: User) {
-    console.log('changeUserRole called with user:', user);
+    // Change user role action
     this.selectedUser = user;
     this.selectedNewRole = user.role; // Initialize with current role
     
     // Set the modal to visible
     this.showRoleChangeModal = true;
-    console.log('Modal should be visible:', this.showRoleChangeModal);
-    console.log('Selected user:', this.selectedUser);
-    console.log('Selected new role:', this.selectedNewRole);
-    console.log('Available roles:', this.availableRoles);
+    // Modal state set
     
     // Force change detection
     setTimeout(() => {
-      console.log('After timeout - Modal visible:', this.showRoleChangeModal);
-      console.log('After timeout - Selected user:', this.selectedUser);
+      // Modal state confirmed
     }, 100);
   }
 
