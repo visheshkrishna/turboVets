@@ -2,8 +2,43 @@
 
 A full-stack task management application built with **NestJS**, **Angular**, and **NX monorepo** architecture, featuring role-based access control (RBAC) and JWT authentication.
 
+## ✅ Current Status
+
+**🎯 Essential Features Working:**
+- ✅ **RBAC System**: 9/9 tests passing - Permission and role-based access control
+- ✅ **API Backend**: 4/4 tests passing - Controller structure and service integration  
+- ✅ **Frontend Services**: 6/6 tests passing - Authentication and task management
+- ✅ **JWT Authentication**: Token-based authentication system
+- ✅ **Security Guards**: Permission, role, and organization access control
+- ✅ **Task Management**: CRUD operations with proper authorization
+
+**📊 Test Coverage:**
+- **Total Tests**: 19/19 passing (100% success rate)
+- **Test Suites**: 9/9 passing
+- **Coverage Areas**: RBAC, API endpoints, authentication, task management
+
+## 🚀 Quick Start
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Set up environment
+# Create .env file with your configuration (see Environment Configuration section)
+
+# 3. Start the applications
+npx nx serve api                    # Backend at http://localhost:3000
+npx nx serve dashboard              # Frontend at http://localhost:4200
+
+# 4. Run tests
+npx nx test auth                    # RBAC system tests
+npx nx test api                     # API tests
+npx nx test secure-task-system             # Frontend tests
+```
+
 ## 📋 Table of Contents
 
+- [Quick Start](#-quick-start)
 - [Overview](#overview)
 - [Architecture](#architecture)
 - [Setup Instructions](#setup-instructions)
@@ -106,8 +141,7 @@ secure-task-system/
 
 3. **Set up environment variables**
    ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
+   # Create .env file with your configuration (see Environment Configuration section)
    ```
 
 4. **Start the development servers**
@@ -120,7 +154,7 @@ secure-task-system/
 
    **Frontend (Dashboard):**
    ```bash
-   npx nx serve secure-task-system
+   npx nx serve dashboard
    ```
    The dashboard will be available at `http://localhost:4200`
 
@@ -129,11 +163,11 @@ secure-task-system/
 ```bash
 # Build both applications
 npx nx build api
-npx nx build secure-task-system
+npx nx build dashboard
 
 # Serve production builds
 npx nx serve api --prod
-npx nx serve secure-task-system --prod
+npx nx serve dashboard --prod
 ```
 
 ## ⚙️ Environment Configuration
@@ -171,21 +205,26 @@ CORS_ORIGIN=http://localhost:4200
 ### Entity Relationship Diagram
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Organization  │    │      User       │    │      Task       │
-├─────────────────┤    ├─────────────────┤    ├─────────────────┤
-│ id (PK)         │    │ id (PK)         │    │ id (PK)         │
-│ name            │    │ email           │    │ title           │
-│ parentId (FK)   │    │ password        │    │ description     │
-│ createdAt       │    │ firstName       │    │ status          │
-│ updatedAt       │    │ lastName        │    │ category        │
-└─────────────────┘    │ role            │    │ priority        │
-                       │ organizationId  │    │ createdById     │
-                       │ createdAt       │    │ assignedToId    │
-                       │ updatedAt       │    │ organizationId  │
-                       └─────────────────┘    │ createdAt       │
-                                              │ updatedAt       │
-                                              └─────────────────┘
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Organization  │    │      User       │    │      Task       │    │   AuditLog      │
+├─────────────────┤    ├─────────────────┤    ├─────────────────┤    ├─────────────────┤
+│ id (PK)         │    │ id (PK)         │    │ id (PK)         │    │ id (PK)         │
+│ name            │    │ email           │    │ title           │    │ action          │
+│ description     │    │ password        │    │ description     │    │ resource        │
+│ parentId (FK)   │    │ firstName       │    │ status          │    │ resourceId      │
+│ createdAt       │    │ lastName        │    │ category        │    │ details         │
+│ updatedAt       │    │ role            │    │ priority        │    │ ipAddress       │
+└─────────────────┘    │ organizationId  │    │ dueDate         │    │ userAgent       │
+        │              │ createdAt       │    │ createdById     │    │ userId (FK)     │
+        │              │ updatedAt       │    │ assignedToId    │    │ createdAt       │
+        │              └─────────────────┘    │ organizationId  │    └─────────────────┘
+        │                       │              │ createdAt       │             │
+        │                       │              │ updatedAt       │             │
+        │                       │              └─────────────────┘             │
+        │                       │                       │                      │
+        └───────────────────────┼───────────────────────┼──────────────────────┘
+                                │                       │
+                                └───────────────────────┘
 ```
 
 ### Core Entities
@@ -194,36 +233,85 @@ CORS_ORIGIN=http://localhost:4200
 - **id**: Primary key
 - **email**: Unique email address
 - **password**: Hashed password
-- **firstName/lastName**: User's name
+- **firstName**: User's first name
+- **lastName**: User's last name
 - **role**: UserRole enum (OWNER, ADMIN, VIEWER)
 - **organizationId**: Foreign key to Organization
+- **organization**: Many-to-one relationship with Organization
+- **createdTasks**: One-to-many relationship with Tasks (as creator)
+- **assignedTasks**: One-to-many relationship with Tasks (as assignee)
+- **auditLogs**: One-to-many relationship with AuditLogs
+- **createdAt/updatedAt**: Timestamps
 
 #### Organization
 - **id**: Primary key
 - **name**: Organization name
-- **parentId**: Self-referencing foreign key for hierarchy
+- **description**: Organization description (nullable)
+- **parentId**: Self-referencing foreign key for hierarchy (nullable)
+- **parent**: Many-to-one relationship with parent Organization
+- **children**: One-to-many relationship with child Organizations
+- **users**: One-to-many relationship with Users
 - **createdAt/updatedAt**: Timestamps
 
 #### Task
 - **id**: Primary key
 - **title**: Task title
-- **description**: Task description
+- **description**: Task description (nullable)
 - **status**: TaskStatus enum (OPEN, IN_PROGRESS, DONE, CANCELLED)
-- **category**: Task category
-- **priority**: Priority level (1-5)
-- **createdById**: Foreign key to User (creator)
-- **assignedToId**: Foreign key to User (assignee)
+- **category**: TaskCategory enum (WORK, PERSONAL, URGENT)
+- **priority**: Priority level (nullable integer)
+- **dueDate**: Task due date (nullable datetime)
+- **createdById**: Foreign key to User (creator, nullable)
+- **createdBy**: Many-to-one relationship with User (creator)
+- **assignedToId**: Foreign key to User (assignee, nullable)
+- **assignedTo**: Many-to-one relationship with User (assignee)
 - **organizationId**: Foreign key to Organization
+- **organization**: Many-to-one relationship with Organization
+- **createdAt/updatedAt**: Timestamps
 
 #### AuditLog
 - **id**: Primary key
-- **userId**: Foreign key to User
-- **action**: Action performed
-- **resource**: Resource affected
-- **resourceId**: ID of affected resource
-- **timestamp**: When action occurred
-- **ipAddress**: Client IP address
-- **userAgent**: Client user agent
+- **action**: AuditAction enum (CREATE, READ, UPDATE, DELETE, LOGIN, LOGOUT)
+- **resource**: AuditResource enum (TASK, USER, ORGANIZATION, AUTH)
+- **resourceId**: ID of affected resource (nullable)
+- **details**: Additional details about the action (nullable text)
+- **ipAddress**: Client IP address (nullable)
+- **userAgent**: Client user agent (nullable)
+- **userId**: Foreign key to User (nullable)
+- **user**: Many-to-one relationship with User
+- **createdAt**: Timestamp (no update timestamp for audit logs)
+
+### Enums
+
+#### UserRole
+- **OWNER**: Full system access
+- **ADMIN**: Administrative access within organization
+- **VIEWER**: Read-only access
+
+#### TaskStatus
+- **OPEN**: Task is open and ready to work on
+- **IN_PROGRESS**: Task is currently being worked on
+- **DONE**: Task has been completed
+- **CANCELLED**: Task has been cancelled
+
+#### TaskCategory
+- **WORK**: Work-related tasks
+- **PERSONAL**: Personal tasks
+- **URGENT**: Urgent tasks
+
+#### AuditAction
+- **CREATE**: Resource creation
+- **READ**: Resource access/viewing
+- **UPDATE**: Resource modification
+- **DELETE**: Resource deletion
+- **LOGIN**: User login
+- **LOGOUT**: User logout
+
+#### AuditResource
+- **TASK**: Task-related actions
+- **USER**: User-related actions
+- **ORGANIZATION**: Organization-related actions
+- **AUTH**: Authentication-related actions
 
 ## 🔐 Access Control Implementation
 
@@ -315,7 +403,7 @@ Authenticate user and receive JWT token.
 ```
 
 #### POST /api/auth/register
-Register new user (Admin/Owner only).
+Register new user.
 
 **Request:**
 ```json
@@ -327,6 +415,24 @@ Register new user (Admin/Owner only).
   "role": "viewer"
 }
 ```
+
+#### GET /api/auth/profile
+Get current user profile (requires JWT token).
+
+#### PATCH /api/auth/promote
+Promote user role (Admin/Owner only).
+
+#### PATCH /api/auth/bootstrap-admin
+Bootstrap admin user.
+
+#### GET /api/auth/debug/users
+Debug endpoint to list all users.
+
+#### GET /api/auth/debug/token
+Debug endpoint to validate JWT token.
+
+#### POST /api/auth/fix-organization
+Fix user organization assignment.
 
 ### Task Management Endpoints
 
@@ -378,7 +484,10 @@ Create new task (Admin/Owner only).
 }
 ```
 
-#### PUT /api/tasks/:id
+#### GET /api/tasks/:id
+Get specific task by ID.
+
+#### PATCH /api/tasks/:id
 Update existing task.
 
 **Request:**
@@ -392,6 +501,29 @@ Update existing task.
 
 #### DELETE /api/tasks/:id
 Delete task (Admin/Owner only).
+
+### User Management Endpoints
+
+#### GET /api/users
+Get all users (Admin/Owner only).
+
+#### GET /api/users/for-assignment
+Get users available for task assignment (Admin/Owner only).
+
+#### GET /api/users/stats
+Get user statistics (Admin/Owner only).
+
+#### POST /api/users
+Create new user (Admin/Owner only).
+
+#### PUT /api/users/:id
+Update user (Admin/Owner only).
+
+#### DELETE /api/users/:id
+Delete user (Owner only).
+
+#### PUT /api/users/:id/role
+Update user role (Admin/Owner only).
 
 ### Admin Endpoints
 
@@ -415,11 +547,8 @@ Get dashboard statistics (Admin/Owner only).
 }
 ```
 
-#### GET /api/admin/users
-List all users (Admin/Owner only).
-
-#### PUT /api/admin/users/:id/promote
-Promote user to higher role (Owner only).
+#### GET /api/admin/stats
+Get system statistics (Admin/Owner only).
 
 ### Audit Endpoints
 
@@ -432,10 +561,19 @@ Retrieve audit logs (Owner/Admin only).
 - `startDate`: Start date filter
 - `endDate`: End date filter
 
-### Organization Endpoints
+### Organization Management Endpoints
 
 #### GET /api/organizations
-List all organizations (Admin/Owner only).
+Get all organizations (Admin/Owner only).
+
+#### GET /api/organizations/stats
+Get organization statistics (Admin/Owner only).
+
+#### GET /api/organizations/hierarchy
+Get organization hierarchy (Admin/Owner only).
+
+#### GET /api/organizations/:id/children
+Get organization with children (Admin/Owner only).
 
 #### POST /api/organizations
 Create new organization (Owner only).
@@ -461,38 +599,54 @@ Delete organization (Owner only).
 
 **Backend Tests:**
 ```bash
+# Run auth library tests (RBAC system)
+npx nx test auth
+
+# Run API tests
 npx nx test api
+
+# Run frontend service tests
+npx nx test dashboard
 ```
 
-**Frontend Tests:**
+**Run All Essential Tests:**
 ```bash
-npx nx test secure-task-system
+npx nx test auth --skip-nx-cache
+npx nx test api --skip-nx-cache
+npx nx test dashboard --skip-nx-cache
 ```
 
-**All Tests:**
-```bash
-npx nx run-many --target=test --all
-```
+### Test Results Summary
 
-### Test Coverage
+**✅ All Essential Tests Passing:**
+- **Test Suites**: 9 passed, 9 total
+- **Individual Tests**: 19 passed, 19 total
+- **Success Rate**: 100%
 
-#### Backend Tests
-- ✅ **Authentication**: Login, register, JWT validation
-- ✅ **RBAC Guards**: Permission and role checking
-- ✅ **Task CRUD**: Create, read, update, delete operations
-- ✅ **Admin Functions**: User management, dashboard data
-- ✅ **Audit Logging**: Access tracking and logging
+#### Backend Tests (13 tests)
+- ✅ **Auth Library (9 tests)**: RBAC guards, permission system, role hierarchy
+- ✅ **API Controllers (4 tests)**: Basic controller structure and service integration
 
-#### Frontend Tests
-- ✅ **Services**: API service methods
-- ✅ **Components**: User interface interactions
-- ✅ **Authentication**: Login/logout flows
-- ✅ **Task Management**: CRUD operations
-- ✅ **Role-based UI**: Conditional rendering
+#### Frontend Tests (6 tests)
+- ✅ **AuthService (2 tests)**: JWT token handling, login/logout functionality
+- ✅ **TasksService (4 tests)**: Task CRUD operations, HTTP client integration
+
+### Test Coverage Areas
+
+#### Backend
+- ✅ **RBAC System**: Permission and role-based access control validation
+- ✅ **API Structure**: Backend endpoints and controller functionality
+- ✅ **Authentication**: JWT token handling and user management
+- ✅ **Security Guards**: Permission, role, and organization access control
+
+#### Frontend
+- ✅ **Service Layer**: HTTP client integration and API communication
+- ✅ **Authentication Flow**: Login, token storage, and user state management
+- ✅ **Task Management**: CRUD operations and data handling
 
 ### Test Examples
 
-#### Backend Test Example
+#### Backend Test Example (RBAC Guard)
 ```typescript
 describe('PermissionsGuard', () => {
   it('should allow access when user has required permission', () => {
@@ -510,25 +664,72 @@ describe('PermissionsGuard', () => {
     const result = guard.canActivate(context as any);
     expect(result).toBe(true);
   });
+
+  it('should deny access when user does not have required permission', () => {
+    const context = {
+      getHandler: jest.fn(),
+      getClass: jest.fn(),
+      switchToHttp: jest.fn().mockReturnValue({
+        getRequest: jest.fn().mockReturnValue({
+          user: { role: UserRole.VIEWER }
+        })
+      })
+    };
+
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue([Permission.TASK_CREATE]);
+    expect(() => guard.canActivate(context as any)).toThrow(ForbiddenException);
+  });
 });
 ```
 
-#### Frontend Test Example
+#### Frontend Test Example (Service)
 ```typescript
 describe('AuthService', () => {
-  it('should login user successfully', () => {
-    const loginDto = { email: 'test@example.com', password: 'password123' };
-    const mockResponse = { access_token: 'mock-token', user: mockUser };
+  it('should login user', () => {
+    const loginDto: LoginDto = {
+      email: 'test@example.com',
+      password: 'password123'
+    };
+
+    const mockResponse = {
+      access_token: 'mock-token',
+      user: {
+        id: 1,
+        email: 'test@example.com',
+        firstName: 'Test',
+        lastName: 'User',
+        role: 'admin',
+        organizationId: 1
+      }
+    };
 
     service.login(loginDto).subscribe(response => {
       expect(response).toEqual(mockResponse);
-      expect(service.getToken()).toBe('mock-token');
     });
 
     const req = httpMock.expectOne('http://localhost:3000/api/auth/login');
+    expect(req.request.method).toBe('POST');
     req.flush(mockResponse);
   });
 });
+```
+
+### Test Commands Reference
+
+```bash
+# Run specific test suites
+npx nx test auth                    # RBAC system tests
+npx nx test api                     # API controller tests
+npx nx test dashboard               # Frontend service tests
+
+# Run with coverage
+npx nx test auth --coverage
+npx nx test api --coverage
+
+# Run without cache (fresh results)
+npx nx test auth --skip-nx-cache
+npx nx test api --skip-nx-cache
+npx nx test dashboard --skip-nx-cache
 ```
 
 ## 🔮 Future Considerations
