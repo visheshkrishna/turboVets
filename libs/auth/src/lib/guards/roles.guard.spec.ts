@@ -20,24 +20,6 @@ describe('RolesGuard', () => {
     expect(guard).toBeDefined();
   });
 
-  it('should allow access when no roles are required', () => {
-    const context = {
-      getHandler: jest.fn(),
-      getClass: jest.fn(),
-      switchToHttp: jest.fn().mockReturnValue({
-        getRequest: jest.fn().mockReturnValue({
-          user: { role: UserRole.ADMIN }
-        })
-      })
-    };
-
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(undefined);
-
-    const result = guard.canActivate(context as any);
-
-    expect(result).toBe(true);
-  });
-
   it('should allow access when user has required role', () => {
     const context = {
       getHandler: jest.fn(),

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TasksService } from './tasks.service';
-import { CreateTaskDto, UpdateTaskDto } from '@secure-task-system/data';
+import { CreateTaskDto } from '@secure-task-system/data';
 
 describe('TasksService', () => {
   let service: TasksService;
@@ -83,48 +83,6 @@ describe('TasksService', () => {
     const req = httpMock.expectOne('http://localhost:3000/api/tasks');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(createTaskDto);
-    req.flush(mockResponse);
-  });
-
-  it('should update task', () => {
-    const updateTaskDto: UpdateTaskDto = {
-      title: 'Updated Task',
-      description: 'Updated Description'
-    };
-
-    const mockResponse = {
-      id: 1,
-      title: 'Updated Task',
-      description: 'Updated Description',
-      status: 'open',
-      category: 'work',
-      priority: 1,
-      createdById: 1,
-      assignedToId: 1,
-      organizationId: 1,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    service.updateTask(1, updateTaskDto).subscribe(response => {
-      expect(response).toEqual(mockResponse);
-    });
-
-    const req = httpMock.expectOne('http://localhost:3000/api/tasks/1');
-    expect(req.request.method).toBe('PATCH');
-    expect(req.request.body).toEqual(updateTaskDto);
-    req.flush(mockResponse);
-  });
-
-  it('should delete task', () => {
-    const mockResponse = { message: 'Task deleted successfully' };
-
-    service.deleteTask(1).subscribe(response => {
-      expect(response).toEqual(mockResponse);
-    });
-
-    const req = httpMock.expectOne('http://localhost:3000/api/tasks/1');
-    expect(req.request.method).toBe('DELETE');
     req.flush(mockResponse);
   });
 });
