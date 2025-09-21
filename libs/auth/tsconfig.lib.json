@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/auth",
+    "declaration": true,
+    "types": ["node"],
+    "baseUrl": "../../",
+    "paths": {
+      "@secure-task-system/data": ["libs/data/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"]
+}

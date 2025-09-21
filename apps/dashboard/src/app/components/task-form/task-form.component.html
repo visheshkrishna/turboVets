@@ -1,0 +1,132 @@
+<div class="bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-10 py-8">
+        <h2 class="text-3xl font-bold text-white">{{ taskToEdit ? 'Edit Task' : 'Create New Task' }}</h2>
+        <p class="text-indigo-100 mt-2 text-lg">{{ taskToEdit ? 'Update task details below' : 'Fill in the details to create a new task' }}</p>
+    </div>
+    
+    <!-- Form Content -->
+    <div class="px-10 py-10">
+        <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" class="space-y-8">
+      <div class="space-y-2">
+        <label for="title" class="block text-sm font-semibold text-gray-800">Title</label>
+        <input
+          id="title"
+          type="text"
+          formControlName="title"
+          class="block w-full px-4 py-3 border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-gray-900 placeholder-gray-400"
+          [ngClass]="{'border-red-400 focus:ring-red-500 focus:border-red-500': title?.invalid && (title?.dirty || title?.touched), 'border-green-400 focus:ring-green-500 focus:border-green-500': title?.valid && title?.touched}"
+          placeholder="Enter a descriptive task title"
+        />
+        <div *ngIf="title?.invalid && (title?.dirty || title?.touched)" class="mt-2 text-sm text-red-600 flex items-center">
+          <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+          </svg>
+          <div *ngIf="title?.errors?.['required']">Title is required</div>
+          <div *ngIf="title?.errors?.['minlength']">Title must be at least 3 characters</div>
+          <div *ngIf="title?.errors?.['maxlength']">Title cannot exceed 100 characters</div>
+        </div>
+      </div>
+  
+      <div class="space-y-2">
+        <label for="description" class="block text-sm font-semibold text-gray-800">Description</label>
+        <textarea
+          id="description"
+          formControlName="description"
+          rows="4"
+          class="block w-full px-4 py-3 border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-gray-900 placeholder-gray-400 resize-none"
+          [ngClass]="{'border-red-400 focus:ring-red-500 focus:border-red-500': description?.invalid && (description?.dirty || description?.touched), 'border-green-400 focus:ring-green-500 focus:border-green-500': description?.valid && description?.touched}"
+          placeholder="Provide a detailed description of the task"
+        ></textarea>
+        <div *ngIf="description?.invalid && (description?.dirty || description?.touched)" class="mt-2 text-sm text-red-600 flex items-center">
+          <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+          </svg>
+          <div *ngIf="description?.errors?.['maxlength']">Description cannot exceed 500 characters</div>
+        </div>
+      </div>
+
+      <!-- Two-column layout for better space utilization -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="space-y-2">
+          <label for="assigneeId" class="block text-sm font-semibold text-gray-800">Assign To</label>
+          <select
+            id="assigneeId"
+            formControlName="assigneeId"
+            class="block w-full px-4 py-3 border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-gray-900 bg-white">
+            <option value="" disabled>Select a user</option>
+            <option *ngFor="let user of users$ | async" [value]="user.id">
+              {{ user.firstName }} {{ user.lastName }}
+            </option>
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <label for="priority" class="block text-sm font-semibold text-gray-800">Priority</label>
+          <select
+            id="priority"
+            formControlName="priority"
+            class="block w-full px-4 py-3 border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-gray-900 bg-white">
+            <option value="1">🟢 1 - Low</option>
+            <option value="2">🟡 2 - Medium</option>
+            <option value="3">🟠 3 - High</option>
+            <option value="4">🔴 4 - Critical</option>
+            <option value="5">🚨 5 - Urgent</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="space-y-2">
+          <label for="category" class="block text-sm font-semibold text-gray-800">Category</label>
+          <select
+            id="category"
+            formControlName="category"
+            class="block w-full px-4 py-3 border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-gray-900 bg-white">
+            <option value="work">💼 Work</option>
+            <option value="personal">👤 Personal</option>
+            <option value="urgent">⚡ Urgent</option>
+            <option value="maintenance">🔧 Maintenance</option>
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <label for="dueDate" class="block text-sm font-semibold text-gray-800">Due Date</label>
+          <input
+            id="dueDate"
+            type="date"
+            formControlName="dueDate"
+            class="block w-full px-4 py-3 border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-gray-900 bg-white"
+            placeholder="Select due date"
+          />
+        </div>
+      </div>
+  
+      <!-- Action Buttons -->
+      <div class="flex justify-end space-x-4 pt-10 border-t border-gray-200">
+        <button
+          type="button"
+          (click)="onCancel()"
+          class="px-6 py-3 border-2 border-gray-300 rounded-lg text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          [disabled]="!taskForm.valid"
+          class="px-6 py-3 border-2 border-transparent rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500 transition-all duration-200 shadow-lg hover:shadow-xl"
+        >
+          <span class="flex items-center">
+            <svg *ngIf="!taskToEdit" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            <svg *ngIf="taskToEdit" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            {{ taskToEdit ? 'Save Changes' : 'Create Task' }}
+          </span>
+        </button>
+      </div>
+    </form>
+    </div>
+  </div>
